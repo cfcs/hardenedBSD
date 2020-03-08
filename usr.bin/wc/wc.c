@@ -47,6 +47,7 @@ __FBSDID("$FreeBSD$");
 #include <sys/capsicum.h>
 #include <sys/param.h>
 #include <sys/stat.h>
+#include <sys/pledge.h>
 
 #include <capsicum_helpers.h>
 #include <ctype.h>
@@ -97,6 +98,14 @@ main(int argc, char *argv[])
 {
 	int ch, errors, total;
 	cap_rights_t rights;
+
+	
+	//if (0 != pledge(PLEDGE_RPATH  /* need to read files */
+	//	| PLEDGE_STDIO /* need signal() */
+	//	| PLEDGE_WILDCARD /* TODO */
+	//	, NULL)) {
+	//	return (1);
+	//} TODO
 
 	(void) setlocale(LC_CTYPE, "");
 

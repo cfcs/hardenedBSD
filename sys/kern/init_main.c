@@ -50,6 +50,7 @@ __FBSDID("$FreeBSD$");
 #include "opt_init_path.h"
 #include "opt_pax.h"
 #include "opt_verbose_sysinit.h"
+#include "opt_pledge.h"
 
 #include <sys/param.h>
 #include <sys/kernel.h>
@@ -68,6 +69,7 @@ __FBSDID("$FreeBSD$");
 #include <sys/syscallsubr.h>
 #include <sys/sysctl.h>
 #include <sys/pax.h>
+#include <sys/pledge.h>
 #include <sys/proc.h>
 #include <sys/racct.h>
 #include <sys/resourcevar.h>
@@ -516,6 +518,9 @@ proc0_init(void *dummy __unused)
 	td->td_lend_user_pri = PRI_MAX;
 	td->td_priority = PVM;
 	td->td_base_pri = PVM;
+#ifdef HBSD_PLEDGE
+	td->td_pledge = PLEDGE_WILDCARD;
+#endif
 	td->td_oncpu = curcpu;
 	td->td_flags = TDF_INMEM;
 	td->td_pflags = TDP_KTHREAD;

@@ -36,6 +36,7 @@ __FBSDID("$FreeBSD$");
 #include <sys/linker.h>
 #include <sys/mman.h>
 #include <sys/mount.h>
+#include <sys/pledge.h>
 #include <sys/procctl.h>
 #include <sys/ptrace.h>
 #include <sys/reboot.h>
@@ -715,6 +716,13 @@ sysdecode_pipe2_flags(FILE *fp, int flags, int *rem)
 {
 
 	return (print_mask_0(fp, pipe2flags, flags, rem));
+}
+
+bool
+sysdecode_pledge_flags(FILE *fp, u_long flags, u_long *rem)
+{
+
+	return (print_mask_0ul(fp, pledgeflags, flags, rem));
 }
 
 const char *

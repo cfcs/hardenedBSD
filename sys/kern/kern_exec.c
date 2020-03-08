@@ -33,6 +33,7 @@ __FBSDID("$FreeBSD$");
 #include "opt_hwpmc_hooks.h"
 #include "opt_ktrace.h"
 #include "opt_pax.h"
+#include "opt_pledge.h"
 #include "opt_vm.h"
 
 #include <sys/param.h>
@@ -88,6 +89,10 @@ __FBSDID("$FreeBSD$");
 
 #ifdef	HWPMC_HOOKS
 #include <sys/pmckern.h>
+#endif
+
+#ifdef HBSD_PLEDGE
+#include <sys/pledge.h>
 #endif
 
 #include <machine/reg.h>
@@ -475,6 +480,12 @@ interpret:
 	error = exec_check_permissions(imgp);
 	if (error)
 		goto exec_fail_dealloc;
+
+#ifdef HBSD_PLEDGE
+	error = pledge_apply_extattr(td, imgp->vp);
+	if (error)
+		goto exec_fail_dealloc;
+#endif
 
 #ifdef PAX_CONTROL_EXTATTR
 	error = pax_control_extattr_parse_flags(td, imgp);

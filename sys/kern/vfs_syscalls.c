@@ -42,6 +42,7 @@ __FBSDID("$FreeBSD$");
 #include "opt_capsicum.h"
 #include "opt_ktrace.h"
 #include "opt_pax.h"
+#include "opt_pledge.h"
 
 #include <sys/param.h>
 #include <sys/systm.h>
@@ -75,6 +76,7 @@ __FBSDID("$FreeBSD$");
 #include <sys/jail.h>
 #include <sys/syscallsubr.h>
 #include <sys/sysctl.h>
+#include <sys/pledge.h>
 #ifdef KTRACE
 #include <sys/ktrace.h>
 #endif
@@ -1047,6 +1049,12 @@ kern_openat(struct thread *td, int fd, const char *path, enum uio_seg pathseg,
 	int cmode, error, indx;
 
 	indx = -1;
+
+#ifdef HBSD_PLEDGE
+	error = pledge_openat(td, fd, path, flags, mode);
+	if (error != 0)
+		return (error);
+#endif
 
 	AUDIT_ARG_FFLAGS(flags);
 	AUDIT_ARG_MODE(mode);
@@ -2941,6 +2949,16 @@ kern_fchownat(struct thread *td, int fd, const char *path,
 {
 	struct nameidata nd;
 	int error, follow;
+
+#ifdef HBSD_PLEDGE
+	/* consult pledge syscall filtering mechanism.
+	 * While the normal chown syscalls are handled by pledge_syscall(),
+	 * validates access from other ABIs too:*/
+	error = pledge_check_bitmap(td, PLEDGE_CHOWN);
+	if (error) {
+		return (error);
+	}
+#endif
 
 	AUDIT_ARG_OWNER(uid, gid);
 	follow = (flag & AT_SYMLINK_NOFOLLOW) ? NOFOLLOW : FOLLOW;

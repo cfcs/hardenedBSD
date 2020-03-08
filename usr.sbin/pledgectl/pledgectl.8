@@ -1,0 +1,93 @@
+.Dd January 24, 2015
+.Dt PLEDGECTL 8
+.Os
+.Sh NAME
+.Nm pledgectl
+.Nd administration of the pledge security mechanism
+.\"
+.Sh SYNOPSIS
+.Nm
+.Op Fl libxo=\fR\fIxoargs\fR
+.Op Fl v
+.Op Fl c | Fl L | Fl h
+.Nm
+.Op Fl libxo=\fR\fIxoargs\fR
+.Op Fl v
+.Op Fl m Ar mask Fl s | Fl l
+.Ar file ...
+.\"
+.Sh DESCRIPTION
+The
+.Nm
+utility interacts with the pledge(4) security mechanism and can
+among other things be used to examine the "learning data" recorded by the
+pledge subsystem when the
+.Ar security.pledge.learning
+sysctl is enabled.
+The
+.Nm libxo
+library is used to produce structured output, see
+.Xr libxo 3
+for accepted values of
+.Ar "xoargs".
+.\"
+.Sh OPTIONS
+.Bl -tag -width indent
+.It Fl v
+Increase output verbosity.
+.It Fl c
+Clear recorded learning data from the kernel. Used after modifying a binary
+in order to invalidate the recorded results when they are no longer relevant.
+.It Fl L
+List recorded learning data.
+.It Fl l Ar file ...
+List pledge extattr associated with given
+.Ar "file(s)" .
+Expands the binary representation (retrievable using
+.Cm getextattr Fl "x system pledge" Ar file ...
+) to human-readable strings.
+.It Fl m Ar mask Fl s Ar file ...
+Set pledge extattr associated with given
+.Ar "file(s)" .
+The
+.Ar mask
+parameter may be either an integer value or a string accepted by
+.Fn "pledge_string_to_bitmask" "mask" .
+.It Fl h
+Display usage / help.
+.\"
+.Sh EXIT STATUS
+.Ex -std
+.\"
+.Sh EXAMPLES
+.Ss Sandboxing a binary using extattr (no source code modifications):
+.Bd -literal -offset indent
+# sysctl security.pledge.learning=1
+# ncal > /dev/null
+# pledgectl -L | grep ncal
+/usr/bin/ncal Used:0x3c:( rpath wpath cpath stdio) Violated:0:( none) Possessed:0xfffffffffffffffc:( wildcard)
+.Ed
+.\"
+.Bd -literal -offset indent
+# pledgectl -m 'rpath wpath cpath stdio' -s /usr/bin/ncal
+# pledgectl -l /usr/bin/ncal
+/usr/bin/ncal: 0x3c: rpath wpath cpath stdio
+.Ed
+.\"
+.Ss TODO Using DTrace
+nope
+.\"
+.\"
+.Sh SEE ALSO
+.Xr pledge 4 ,
+.Xr pledge 3 ,
+.Xr libxo 3 ,
+.\"
+.Sh HISTORY
+.Nm TODO
+.\"
+.Sh BUGS
+TODO plenty
+.\"
+.Sh AUTHORS
+.An xxx Aq Mt example@TODO.com

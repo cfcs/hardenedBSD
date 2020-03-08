@@ -993,6 +993,8 @@ PAX_ASLR_DELTA_STACK_LSB		opt_pax.h
 PAX_ASLR_DELTA_STACK_WITH_GAP_LSB	opt_pax.h
 PAX_ASLR_DELTA_EXEC_LSB			opt_pax.h
 PAX_ASLR_DELTA_VDSO_LSB			opt_pax.h
+# pledge() system call whitelisting inspired by OpenBSD
+HBSD_PLEDGE	opt_pledge.h
 
 # Random number generator(s)
 # With this, no entropy processor is loaded, but the entropy

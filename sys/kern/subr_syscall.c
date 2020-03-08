@@ -42,6 +42,7 @@
 
 #include "opt_capsicum.h"
 #include "opt_ktrace.h"
+#include "opt_pledge.h"
 
 __FBSDID("$FreeBSD$");
 
@@ -53,6 +54,7 @@ __FBSDID("$FreeBSD$");
 #include <sys/ktrace.h>
 #endif
 #include <security/audit/audit.h>
+#include <sys/pledge.h>
 
 static inline void
 syscallenter(struct thread *td)
@@ -123,6 +125,13 @@ syscallenter(struct thread *td)
 		td->td_errno = error = ECAPMODE;
 		goto retval;
 	}
+#endif
+
+#ifdef HBSD_PLEDGE
+	/* when pledge is active*/
+	error = pledge_syscall(td, sa->code);
+	if(error != 0)
+	    goto retval;
 #endif
 
 	error = syscall_thread_enter(td, sa->callp);

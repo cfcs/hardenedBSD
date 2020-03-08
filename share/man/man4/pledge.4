@@ -1,0 +1,101 @@
+.\" Hello this is the documentation for the pledge mechanism.
+.\" TODO turn this into a valid man page format.
+
+.Dd March 1, 2020
+.Dt PLEDGE 4
+.Os
+.Sh NAME
+.Nm pledge
+.Nd TODO Process sandbox mechanism
+.Sh SYNOPSIS
+.\"
+.Ss Sysctls
+.Bd -offset indent
+.Nm security.pledge.flags=\fIuint64\fR
+Set (and retrieve) the permissions for the calling process
+.It Nm security.pledge.enforcing=\fIbool\fR
+Turn on/off the enforcing of pledge policies globally.
+.It Nm security.pledge.violations=\fIuint64\fR
+.It Nm security.pledge.kills=\fIuint64\fR
+.It Nm security.pledge.softfails=\fIuint64\fR
+.It Nm security.pledge.learning=\fIbool\fR
+.It Nm security.pledge.learning_count=\fIuint64l\fR
+yooo
+.Ei
+.Ed
+.Ss Permissions
+.\"
+See
+.Cm pledgectl -v
+for the set of flags supported by your copy of
+.Nm "libpledge".
+.\"
+Here we should list each PLEDGE_ flag, and its consequences.
+.\"
+PLEDGE_SOFTFAIL	TODO
+.\"
+.Sh DESCRIPTION
+Note: To avoid synchronization overhead, the uint64 counters
+(violations, kills, softfails, learning) are kept per-CPU, and
+only eventually convergent, so the retrieved values are conservative estimates
+rather than exact values. When requesting data for security.pledge.learning you
+should ask for more than security.pledge.learning_count entries
+TODO .
+
+The security mechanism is implemented by starting
+.Fn
+init(1)
+with a pledge mask of
+PLEDGE_WILDCARD
+, and allowing threads to remove flags by calling
+.Fn
+pledge(3)
+with the complete set of desired of flags.
+.\"
+.\"
+To enable enforcing of the pledge mechanism, this sysctl must be set to one:
+.\"
+.Cd security.pledge.enforcing = 1
+.\"
+.\"
+To avoid clashing with syscalls, the kernel interface for
+.Fn
+pledge(3)
+is currently implemented as a sysctl node,
+.Fn
+security.pledge.flags
+.\"
+.\"
+A "learning mode" is available, but disabled by default due to
+the performance overhead it might incur on the system.
+It can be enabled with the command:
+.Cm sysctl security.pledge.learning=1
+.\"
+.\"
+The learning mode will keep track of which executables trigger violations of
+their respective pledge masks, and keep track of the flags actively utilized by
+the executables, enabling the system administrator to identify executables
+that are equipped with excessively permissive flags, or to identify the set
+flags that programs require.
+Learning mode works independently of
+.Fn
+security.pledge.enforcing
+and thus can be used to create a baseline for normal operation of a system while
+enforcement is turned off.
+.\"
+Regardless of the configuration of
+.Fn
+security.pledge.learning
+and
+.Fn
+security.pledge.enforcing
+a counter of all encountered policy violations since boot is maintained
+under sysctl node
+.Nm "security.pledge.violations".
+The system administrator can overwrite this when necessary, for instance
+after making policy changes.
+.\"
+The
+.Xr pledgectl 1
+utility can be used to extract the data gathered by the learning mode and
+display it to the system administrator.

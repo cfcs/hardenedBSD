@@ -29,6 +29,8 @@
 #include <sys/cdefs.h>
 __FBSDID("$FreeBSD$");
 
+#include <sys/pledge.h>
+
 #include <calendar.h>
 #include <ctype.h>
 #include <err.h>
@@ -191,6 +193,7 @@ static void	usage(void);
 int
 main(int argc, char *argv[])
 {
+
 	struct  djswitch *p, *q;	/* to search user defined switch date */
 	date	never = {10000, 1, 1};	/* outside valid range of dates */
 	date	ukswitch = {1752, 9, 2};/* switch date for Great Britain */
