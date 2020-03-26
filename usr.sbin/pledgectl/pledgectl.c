@@ -495,7 +495,7 @@ int main(int argc, char *argv[])
 	/* pledge privs to assign to extattr: */
 	uint64_t new_extattr_mask = PLEDGE_NONE;
 
-	while ((ch = getopt(argc, argv, "chLl:sv")) != -1) {
+	while ((ch = getopt(argc, argv, "chLls:v")) != -1) {
 
 		/*
 		 * Only permit ONE action:
@@ -530,10 +530,23 @@ int main(int argc, char *argv[])
 				break;
 			}
 
-			if (pledge_string_to_bitmask(optarg,
-				&new_extattr_mask)) {
+			intptr_t res =
+			    pledge_string_to_bitmask(optarg, &new_extattr_mask);
+			if ( res < 0 ||
+			    (res > 0 && (unsigned long)res >= strlen(optarg))) {
 				xo_errx(14,
-				    "error: Unable to parse -m argument.");
+				    "error: Unable to parse -s argument '%s'.",
+					optarg);
+			} else if (res > 0) {
+				/* Underline offending char: */
+				// TODO PRIuPTR ?
+				xo_errx(15,
+				    "error: Unable to parse -s argument '"
+				    "%.*s\033[4m%c\033[0m%s'"
+				    " error at offset %d,".
+				    (int)res, optarg,
+				    *(optarg + res), optarg + res + 1,
+				    (int)res);
 			}
 
 			if (verbose) {

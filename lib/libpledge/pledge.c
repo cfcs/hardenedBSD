@@ -51,11 +51,11 @@ enum pledge_str_state { LOOK_FOR_WHITESPACE, TERM, NEGATED_TERM };
 /*
  * TODO
  * Convert a human-readable string to a pledge bitmask.
- * &output_mask is only set if the parsing was successful.
- * On success returns 0, on error returns EINVAL.
- * errno is always set to 0.
+ * (output_mask) is only modified if the parsing was successful.
+ * On success returns 0, on error returns either -1, or an offset to the
+ * the first character not recognized by the parser.
  */
-int
+intptr_t
 pledge_string_to_bitmask(const char *const policy, uint64_t *output_mask)
 {
 	uint64_t whitelist = PLEDGE_NONE;
@@ -63,7 +63,7 @@ pledge_string_to_bitmask(const char *const policy, uint64_t *output_mask)
 	enum pledge_str_state state = TERM;
 
 	if (!policy || !output_mask)
-		return (EINVAL);
+		return (-1);
 
 	{ /* Raw integer mask */
 		char *invalid = NULL;
@@ -97,7 +97,7 @@ pledge_string_to_bitmask(const char *const policy, uint64_t *output_mask)
 			/* TODO if we returned the index of the invalid char
 			 * this function would be a lot more useful to people
 			 * having issues with the syntax. */
-			return (EINVAL);
+			return (ptr - policy);
 		}
 
 		for (size_t idx = 0;
@@ -130,7 +130,7 @@ pledge_string_to_bitmask(const char *const policy, uint64_t *output_mask)
 		/* If we are still looking for a term, we didn't find
 		 * a match in pledge_string_map: */
 		if (LOOK_FOR_WHITESPACE != state)
-			return (EINVAL);
+			return (ptr - policy);
 	}
 
 	/*

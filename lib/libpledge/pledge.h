@@ -36,7 +36,7 @@ pledge(const uint64_t _mask);
  * TERM-LIST ::= TERM (SEPARATOR TERM-LIST | "" )
  * POLICY ::= (TERM-LIST | "" ) (SEPARATOR | "" ) EOF
  */
-int
+intptr_t
 pledge_string_to_bitmask(const char *_policy, uint64_t *_result_mask);
 
 

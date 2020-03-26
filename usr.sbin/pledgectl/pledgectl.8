@@ -13,8 +13,11 @@
 .Nm
 .Op Fl libxo=\fR\fIxoargs\fR
 .Op Fl v
-.Op Fl m Ar mask Fl s | Fl l
-.Ar file ...
+.Fl s Ar mask Ar file ...
+.Nm
+.Op Fl libxo=\fR\fIxoargs\fR
+.Op Fl v
+.Fl l Ar file ...
 .\"
 .Sh DESCRIPTION
 The
@@ -34,18 +37,21 @@ for accepted values of
 .Sh OPTIONS
 .Bl -tag -width indent
 .It Fl v
-Increase output verbosity.
+Increase output verbosity. When used once it will output information about the
+interpretation of the specified task. Used twice (
+.Fl "vv")
+it will print additional information about each processed item.
 .It Fl c
 Clear recorded learning data from the kernel. Used after modifying a binary
 in order to invalidate the recorded results when they are no longer relevant.
 .It Fl L
-List recorded learning data.
+List learning data recorded by the kernel.
 .It Fl l Ar file ...
 List pledge extattr associated with given
 .Ar "file(s)" .
 Expands the binary representation (retrievable using
-.Cm getextattr Fl "x system pledge" Ar file ...
-) to human-readable strings.
+.Cm getextattr Fl "x system pledge" Ar "file ...")
+to human-readable strings.
 .It Fl m Ar mask Fl s Ar file ...
 Set pledge extattr associated with given
 .Ar "file(s)" .
@@ -61,10 +67,15 @@ Display usage / help.
 .\"
 .\"
 .Sh EXAMPLES
-.Ss Displaying string/hex representation of pledge mask:
+.Ss Displaying hex/string representation of pledge mask:
+Using the
+.Ar -s
+flag (with verbosity) to set an extattr mask without specifying a file will
+simply print the result of the mask parsing:
 .Bd -literal -offset indent
 # pledgectl -v -s 'rpath stdio'
-New pledge mask: 0x20: rpath stdio TODO
+New pledge mask:               0x24: rpath stdio
+
 .Ed
 .\"
 .Ss Sandboxing a binary using extattr (no source code modifications):
