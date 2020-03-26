@@ -56,7 +56,7 @@ usage()
 	xo_warnx("usage: clear:      pledgectl [--libxo] [-v] -c\n"
 	    "       list-all:   pledgectl [--libxo] [-v] -L\n"
 	    "       list-attr:  pledgectl [--libxo] [-v] -l FILE ...\n"
-	    "       set-attr:   pledgectl [--libxo] [-v] -m MASK -s FILE ...\n"
+	    "       set-attr:   pledgectl [--libxo] [-v] -s MASK [FILE ...]\n"
 	    "       show usage: pledgectl [--libxo] [-v] -h"
 	    "TODO 'local learning mode'/'trace'/'profile' for a given execution\n"
 	    "TODO remove extattr from file(s)\n"
@@ -131,7 +131,7 @@ pledgectl_set_extattr(const char *filename, const uint64_t new_extattr_mask)
 		EXTATTR_NAMESPACE_SYSTEM, "pledge",
 		&new_extattr_mask, sizeof(new_extattr_mask))) {
 
-		if (verbose) {
+		if (verbose > 1) {
 			xo_open_instance("file");
 			xo_emit_f(XOEF_RETAIN,
 			    "{wc:new-mask/%18#lx}{:filename}\n",
@@ -451,7 +451,7 @@ pledgectl_dump_all()
 
 	free(paths);
 	tree_free();
-	
+
 	xo_close_list(PLEDGECTL_XO_LEARNING_LIST);
 	if (ignored && verbose) {
 		xo_emit("{Lwc:Ignored entries}{:ignored-entries/%u}\n",
@@ -495,7 +495,7 @@ int main(int argc, char *argv[])
 	/* pledge privs to assign to extattr: */
 	uint64_t new_extattr_mask = PLEDGE_NONE;
 
-	while ((ch = getopt(argc, argv, "chLlm:sv")) != -1) {
+	while ((ch = getopt(argc, argv, "chLl:sv")) != -1) {
 
 		/*
 		 * Only permit ONE action:
@@ -523,9 +523,9 @@ int main(int argc, char *argv[])
 			action = DUMP_ALL; break;
 		case 'l':
 			action = LIST_EXTATTR; break;
-		case 'm':
+		case 's':
 			if (PLEDGE_NONE != new_extattr_mask) {
-				xo_warnx("error: -m given more than once");
+				xo_warnx("error: -s given more than once");
 				action = UNSET;
 				break;
 			}
@@ -541,19 +541,21 @@ int main(int argc, char *argv[])
 					new_extattr_mask);
 				if (str) {
 					xo_emit("{Lwc:New pledge mask}"
-						    "{:applied-mask}\n", str);
+					    "{wc:new-mask/%18#lx}"
+					    "{:new-strmask}\n",
+					    new_extattr_mask, str);
 					free(str);
 				}
 			}
+			action = SET_EXTATTR;
 			break;
-		case 's':
-			action = SET_EXTATTR; break;
 		case 'v':
 			verbose++;
 			break;
 		default:
 			/* -h and unrecognized flags will end here: */
 			action = UNSET;
+			argc = 0;
 		}
 	}
 	argc -= optind;

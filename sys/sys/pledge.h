@@ -145,6 +145,16 @@ int pledge_apply_extattr(struct thread *td, struct vnode *ni_vp);
 #define PLEDGE_WILDCARD	((~0ULL) ^ \
 	    (PLEDGE_AND | PLEDGE_SOFTFAIL))	/* match any flag */
 
+
+/*
+ * TODO: This should not be defined like this,
+ * since now each user in the kernel has a static
+ * copy of this map (even if they don't use it?).
+ * Exposing it from e.g. hbsd_pledge.c would result
+ * in only a single copy, and that would be doubly useful
+ * since then DTrace scripts could do lookups here.
+ * For userspace we probably want to expose it from libpledge.
+ */
 static const
 struct {
 	const uint64_t constant;

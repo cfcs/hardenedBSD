@@ -59,7 +59,14 @@ Display usage / help.
 .Sh EXIT STATUS
 .Ex -std
 .\"
+.\"
 .Sh EXAMPLES
+.Ss Displaying string/hex representation of pledge mask:
+.Bd -literal -offset indent
+# pledgectl -v -s 'rpath stdio'
+New pledge mask: 0x20: rpath stdio TODO
+.Ed
+.\"
 .Ss Sandboxing a binary using extattr (no source code modifications):
 .Bd -literal -offset indent
 # sysctl security.pledge.learning=1
@@ -69,7 +76,7 @@ Display usage / help.
 .Ed
 .\"
 .Bd -literal -offset indent
-# pledgectl -m 'rpath wpath cpath stdio' -s /usr/bin/ncal
+# pledgectl -s 'rpath wpath cpath stdio' /usr/bin/ncal
 # pledgectl -l /usr/bin/ncal
 /usr/bin/ncal: 0x3c: rpath wpath cpath stdio
 .Ed

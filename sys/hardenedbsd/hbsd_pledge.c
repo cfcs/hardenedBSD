@@ -177,7 +177,7 @@ SYSCTL_COUNTER_U64(_security_pledge, OID_AUTO, learning_count,
 #ifdef CTLFLAG_ROOTONLY
     CTLFLAG_ROOTONLY |
 #endif
-    CTLFLAG_RD,
+    CTLFLAG_RD | CTLFLAG_STATS,
     &learning_count, "Amount of recorded learning entries (for all CPUs)");
 
 static counter_u64_t violation_count = NULL;
@@ -185,7 +185,7 @@ SYSCTL_COUNTER_U64(_security_pledge, OID_AUTO, violations,
 #ifdef CTLFLAG_ROOTONLY
     CTLFLAG_ROOTONLY |
 #endif
-    CTLFLAG_RW | CTLFLAG_SECURE,
+    CTLFLAG_RW | CTLFLAG_SECURE | CTLFLAG_STATS,
     &violation_count, "# of policy violations (enforced+learning)");
 
 static counter_u64_t kill_count = NULL;
@@ -193,7 +193,7 @@ SYSCTL_COUNTER_U64(_security_pledge, OID_AUTO, kills,
 #ifdef CTLFLAG_ROOTONLY
     CTLFLAG_ROOTONLY |
 #endif
-    CTLFLAG_RW | CTLFLAG_SECURE,
+    CTLFLAG_RW | CTLFLAG_SECURE | CTLFLAG_STATS,
     &kill_count, "# of policy violations resulting in process kill");
 
 static counter_u64_t softfail_count = NULL;
@@ -201,7 +201,7 @@ SYSCTL_COUNTER_U64(_security_pledge, OID_AUTO, softfails,
 #ifdef CTLFLAG_ROOTONLY
     CTLFLAG_ROOTONLY |
 #endif
-    CTLFLAG_RW | CTLFLAG_SECURE,
+    CTLFLAG_RW | CTLFLAG_SECURE | CTLFLAG_STATS,
     &softfail_count, "# of policy violations resulting in soft-fail");
 
 /* TODO are proc nodes with CTLFLAG_SECURE generally accessible to
@@ -215,12 +215,14 @@ SYSCTL_BOOL(_security_pledge, OID_AUTO, enforcing,
     "enforce pledge violations (0: off, 1: enforcing)");
 
 SYSCTL_PROC(_security_pledge, OID_AUTO, flags,
-    CTLTYPE_U64 | CTLFLAG_WR | CTLFLAG_ANYBODY
+    CTLTYPE_U64 | CTLFLAG_RW | CTLFLAG_ANYBODY
     | CTLFLAG_PRISON | CTLFLAG_CAPWR | CTLFLAG_CAPRD | CTLFLAG_MPSAFE,
     NULL, 0, /* arg1, arg2 */
     sysctl_pledge_flags, "S,uint64_t", /* function, format*/
-    "Reduce pledge flags for the calling thread");
+    "Reduce pledge flags for the calling thread and return previous flags.");
 
+SYSCTL_NODE(_security_pledge, OID_AUTO, override, 0, 0,
+    "Override required flags for a given syscall.");
 
 
 /*
@@ -275,6 +277,15 @@ pledge_learning_init(const void *_unused)
 			"security.pledge.learning");
 		RB_INIT(DPCPU_ID_PTR(cpu, learning_tree));
 	}
+
+	/* TODO add a tunable for each system call.
+	 * This should modify the pledge_permission_map to allow overriding
+	 * the pledge permission mask for syscalls to enable troubleshooting
+	 * when new syscalls are added without having to recompile the kernel.
+	struct sysctl_oid *mynode = SYSCTL_ADD_U64(_security_pledge_override,
+	    TODOTODO  CTLFLAG_RWTUN | CTLFLAG_SECURE | CTLFLAG_RD
+		);
+	*/
 }
 
 /*
@@ -753,7 +764,7 @@ pledge_openat(struct thread *thread, const int fd, const char *path,
  *
  * These are listed in numerical, ascending order (see sys/sys/syscalls.h):
  */
-static const
+static
 uint64_t pledge_permission_map[SYS_MAXSYSCALL] = {
 	/* 0: */
 	[SYS_syscall]	= PLEDGE_NONE, // TODO
